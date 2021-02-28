@@ -1,0 +1,159 @@
+version: '3'
+services:
+  es:
+    build: ./armi-es
+    image: armi-es
+    container_name: armi-es
+    restart: always
+    ports:
+      - 9200:9200
+      - 9300:9300
+    networks: 
+      - armi-net
+  redis:
+    image: redis
+    container_name: armi-redis
+    restart: always
+    ports:
+      - 6379:6379
+    networks:
+      - armi-net
+  queue:
+    build: ./armi-queue
+    image: armi-queue
+    container_name: armi-queue
+    restart: always
+    ports:
+      - 5672:5672
+      - 15672:15672
+    networks:
+      - armi-net
+  # 指定服務名稱
+  db:
+    build: ./armi-db
+    # 指定image
+    image: armi-db
+    # 指定container
+    container_name: armi-db
+    restart: always
+    # 指定port
+    ports:
+      - 3306:3306
+    volumes:
+      - db-data:/var/log/mysql
+      - db-data:/var/lib/mysql
+      - db-data:/etc/mysql
+    # 指定env
+    environment:
+      - MYSQL_ROOT_PASSWORD=1234
+      - MYSQL_DATABASE=Armi
+    networks:
+      - armi-net
+  # 指定服服務名稱
+  armi-api:
+    build: 
+      context: ./armi-api
+    # 指定images
+    image: armi-api
+    # 指定container
+    container_name: armi-api
+    restart: always
+    # 指定port
+    ports:
+      - 8080:8080
+    # 指定 volumes
+    # volumes:
+    #   - /etc/localtime:/etc/localtime
+    networks:
+      - armi-net
+    depends_on:
+      - db
+      - redis
+      - es
+  armi-dashboard-api:
+    build: 
+      context: ./armi-dashboard-api
+    # 指定images
+    image: armi-dashboard-api
+    # 指定container
+    container_name: armi-dashboard-api
+    restart: always
+    # 指定port
+    ports:
+      - 8081:8080
+    # 指定 volumes
+    # volumes:
+    #   - /etc/localtime:/etc/localtime
+    networks:
+      - armi-net
+    depends_on:
+      - db
+      - redis
+  armi-queue-api:
+    build: 
+      context: ./armi-queue-api
+    # 指定images
+    image: armi-queue-api
+    # 指定container
+    container_name: armi-queue-api
+    restart: always
+    # 指定port
+    ports:
+      - 8082:8080
+    # 指定 volumes
+    # volumes:
+    #   - /etc/localtime:/etc/localtime
+    networks:
+      - armi-net
+    depends_on:
+      - db
+      - queue
+  armi-web:
+    build: ./armi-web
+    image: armi-web
+    container_name: armi-web
+    environment:
+      - DEPLOY_ENV=dev
+    restart: always
+    ports:
+      - 3000:3000
+    networks:
+      - armi-net
+    depends_on:
+      - armi-api
+  dashboard-web:
+    build: ./armi-dashboard-web
+    image: armi-dashboard-web
+    container_name: armi-dashboard-web
+    environment:
+      - DEPLOY_ENV=dev
+    restart: always
+    ports:
+      - 3001:3000
+    networks:
+      - armi-net
+    depends_on:
+      - armi-dashboard-api
+  # jenkins:
+  #  image: jenkins/jenkins
+  #  container_name: armi-jenkins
+  #  restart: always
+  #  ports:
+  #    - 9999:8080
+  #  volumes:
+  #     - jenkins-data:/var/jenkins_home  # 这是我们一开始创建的目录挂载到容器内的jenkins_home目录
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #     - /usr/bin/docker:/usr/bin/docker                # 这是为了我们可以在容器内使用docker命令
+  #     - /usr/local/bin/docker-compose:/usr/local/bin/docker-compose
+  #  networks:
+  #   - armi-net
+
+
+volumes:
+  db-data:
+  # jenkins-data:
+networks:
+  armi-net:
+
+
+# TODO 補 elasticsearch

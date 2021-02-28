@@ -1,0 +1,81 @@
+#  node:12.6.0-alpine  image
+FROM node
+
+MAINTAINER  poshen0322@gmail.com
+
+# Install software
+RUN apt-get update
+RUN apt-get install -y git
+
+# make ssh dir
+RUN mkdir /root/.ssh
+
+# add ssh private key
+COPY id_rsa /root/.ssh/id_rsa
+
+#create known_hosts
+RUN touch /root/.ssh/known_hosts
+# add github key 
+RUN ssh-keyscan github.com >> /root/.ssh/known_hosts
+
+RUN git clone -b ura git@github.com:TysonLain/armiTech-web.git /data
+
+WORKDIR /data
+RUN npm install;
+# RUN npm run build
+
+EXPOSE 3000
+
+CMD ["npm","run","dev"]
+
+
+
+
+
+# FROM node:12.6.0-alpine
+
+# ENV APP_ROOT /src
+
+# RUN mkdir ${APP_ROOT}
+# WORKDIR ${APP_ROOT}
+# ADD . ${APP_ROOT}
+
+# RUN npm install
+# RUN npm run build
+
+# ENV HOST 0.0.0.0
+
+#================================================
+
+# # global variable
+# ARG APP_CODE_PATH_HOST
+# ARG APP_CODE_PATH_CONTAINER
+# ARG APP_PORT_CONTAINER
+
+# # create Nuxt folder
+# RUN mkdir -p ${APP_CODE_PATH_CONTAINER}
+
+# # create nuxt.config.js
+# RUN touch nuxt.config.js
+
+# # update and install  kit
+# RUN apk update & apl upgrade
+# RUN apl add git
+
+# COPY run.sh ${APP_CODE_PATH_CONTAINER}
+# COPY package.json  ${APP_CODE_PATH_CONTAINER}
+
+
+
+# # install npm kit
+# RUN npm install
+
+# #  container port
+# EXPOSE ${APP_PORT_CONTAINER}
+
+# # set Nuxt container IP
+# ENV NUXT_HOST = 0.0.0.0
+
+# CMD ./run.sh
+
+
